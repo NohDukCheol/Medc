@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  /* 커스텀 폰트 등을 정의할 때 사용 (선택 사항) */
+  --font-pretendard: "Pretendard", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-pretendard);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* v4에서는 테마 변수를 직접 쓰거나 @apply를 사용합니다. */
+    @apply bg-gray-50 text-gray-900;
+  }
+}
