@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, FileText, Clock, User, Presentation, Check, Info, Package } from 'lucide-react';
-import { cn } from './utils';
+import { ArrowLeft, FileText, Clock, User, Presentation, Check } from 'lucide-react';
+import { cn } from './utils'; 
+import { PATIENTS_DATABASE } from '../PatientList'; 
 
 // --- 인터페이스 정의 ---
 interface TaskDetail {
@@ -11,7 +12,7 @@ interface TaskDetail {
   guide: boolean;
 }
 
-interface Patient {
+export interface Patient {
   id: number;
   name: string;
   age: number;
@@ -22,17 +23,18 @@ interface Patient {
   completedTasks: string[];
   pendingTasks: TaskDetail[];
   notes: string;
-  addedMemos?: { time: string; text: string; }[]; // 업로드되는 새 메모들을 누적할 배열
+  addedMemos?: { time: string; text: string; }[];
 }
 
 interface HandoffPageProps {
   onBack: () => void;
-  onGenerateDocument: (selectedIds: number[]) => void;
+ 
+  onGenerateDocument: (selectedIds: number[], checkedTasks: string[]) => void;
   onNursingBriefingClick: () => void;
 }
 
-// 💡 전역 런타임 캐시 데이터베이스
-const MASTER_HANDOFF_DB: Patient[] = [
+// 💡 HandoffDocument에서 이 상세 데이터를 끌어다 쓸 수 있도록 export 추가
+export const MASTER_HANDOFF_DB: Patient[] = [
   {
     id: 1, name: '박지민', age: 67, room: '301', diagnosis: '급성 심근경색', status: 'danger',
     lastVitals: { time: '13:00', bp: '160/95', hr: '102', temp: '37.8' },
@@ -46,7 +48,7 @@ const MASTER_HANDOFF_DB: Patient[] = [
     addedMemos: []
   },
   {
-    id: 2, name: '김수연', age: 45, room: '405', diagnosis: '폐렴', status: 'caution',
+    id: 5, name: '김수연', age: 45, room: '405', diagnosis: '폐렴', status: 'caution',
     lastVitals: { time: '12:30', bp: '135/85', hr: '88', temp: '38.2' },
     completedTasks: ['항생제 IV 투여 (11:00)', '활력징후 측정 (12:00)', '해열제 투여 (12:30)'],
     pendingTasks: [
@@ -57,7 +59,7 @@ const MASTER_HANDOFF_DB: Patient[] = [
     addedMemos: []
   },
   {
-    id: 3, name: '윤지우', age: 58, room: '412', diagnosis: '패혈증', status: 'danger',
+    id: 7, name: '윤지우', age: 58, room: '412', diagnosis: '패혈증', status: 'danger',
     lastVitals: { time: '13:30', bp: '90/60', hr: '115', temp: '39.1' },
     completedTasks: ['광범위 항생제 IV 투여 (12:00)', '활력징후 측정 (13:00)', '승압제 투여 (13:30)'],
     pendingTasks: [
@@ -75,25 +77,38 @@ const StatusBadge = ({ status }: { status: Patient['status'] }) => {
     caution: "bg-amber-100 text-amber-700",
     normal: "bg-emerald-100 text-emerald-700",
   };
-  const labels = { danger: "위험", caution: "주의", normal: "정상" };
+  const labels = { danger: "위중", caution: "관찰", normal: "안정" };
 
   return (
-    <span className={cn("px-2.5 py-1 rounded-lg text-xs font-semibold", styles[status])}>
+    <span className={cn("px-2.5 py-1 rounded-lg text-xs font-bold", styles[status])}>
       {labels[status]}
     </span>
   );
 };
 
 export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick }: HandoffPageProps) {
-  // 컴포넌트 내부 통합 렌더링 상태
   const [patientsList, setPatientsList] = useState<Patient[]>(() => JSON.parse(JSON.stringify(MASTER_HANDOFF_DB)));
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [checkedTasks, setCheckedTasks] = useState<string[]>([]);
-  const [newMemos, setNewMemos] = useState<{ [key: number]: string }>({}); // 입력창 텍스트 버퍼
+  const [newMemos, setNewMemos] = useState<{ [key: number]: string }>({});
 
-  // 💡 [요구사항 2 픽스] 페이지 렌더링 시 최상단으로 스크롤 강제 점프
   useEffect(() => {
     window.scrollTo(0, 0);
+    setPatientsList(prev => prev.map(p => {
+      const globalMatch = PATIENTS_DATABASE.find(gp => gp.id === p.id);
+      if (globalMatch) {
+        return {
+          ...p,
+          lastVitals: {
+            ...p.lastVitals,
+            bp: globalMatch.vitals.bp,
+            hr: globalMatch.vitals.hr.toString(),
+            temp: globalMatch.vitals.temp.toString()
+          }
+        };
+      }
+      return p;
+    }));
   }, []);
 
   const isAllSelected = selectedIds.length === patientsList.length;
@@ -109,19 +124,23 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
     );
   };
 
-  // Vitals 실시간 값 동기화
   const handleLiveInputChange = (patientId: number, field: 'bp' | 'hr' | 'temp', value: string) => {
     setPatientsList(prev =>
       prev.map(p => p.id === patientId ? { ...p, lastVitals: { ...p.lastVitals, [field]: value } } : p)
     );
+    
+    const globalMatch = PATIENTS_DATABASE.find(gp => gp.id === patientId);
+    if (globalMatch) {
+      if (field === 'bp') globalMatch.vitals.bp = value;
+      if (field === 'hr') globalMatch.vitals.hr = parseInt(value) || globalMatch.vitals.hr;
+      if (field === 'temp') globalMatch.vitals.temp = parseFloat(value) || globalMatch.vitals.temp;
+    }
   };
 
-  // 메모 작성 버퍼 핸들러
   const handleMemoChange = (patientId: number, value: string) => {
     setNewMemos(prev => ({ ...prev, [patientId]: value }));
   };
 
-  // 💡 [요구사항 1 픽스] 텍스트 업로드 시각화 및 4개 데이터 동시 저장 캐싱 완료본
   const handleSavePatientData = (patientId: number) => {
     const targetPatient = patientsList.find(p => p.id === patientId);
     if (!targetPatient) return;
@@ -130,7 +149,6 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // 1. 글로벌 마스터 DB 동기화
     const globalMatch = MASTER_HANDOFF_DB.find(p => p.id === patientId);
     if (globalMatch) {
       globalMatch.lastVitals = { ...targetPatient.lastVitals };
@@ -139,7 +157,6 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
       }
     }
 
-    // 2. 화면 리스트 리렌더링 (블록 업로드 시각화 및 텍스트창 초기화)
     setPatientsList(prev => prev.map(p => {
       if (p.id === patientId) {
         return {
@@ -151,7 +168,6 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
       return p;
     }));
 
-    // 입력창 텍스트만 비워주어 업로드된 느낌 제공
     if (memoText) {
       setNewMemos(prev => ({ ...prev, [patientId]: '' }));
     }
@@ -159,11 +175,10 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <button onClick={onBack} className="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-all text-sm mb-2">
+            <button onClick={onBack} className="flex items-center gap-1.5 text-slate-500 hover:text-blue-600 transition-all text-sm mb-2 font-medium">
               <ArrowLeft className="w-4 h-4" />
               <span>대시보드</span>
             </button>
@@ -171,14 +186,15 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
           </div>
           
           <div className="flex gap-3">
-            <button onClick={onNursingBriefingClick} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+            <button onClick={onNursingBriefingClick} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all shadow-sm font-bold text-sm">
               <Presentation className="w-4 h-4" />
               브리핑 모드
             </button>
             <button 
-              onClick={() => onGenerateDocument(selectedIds)}
+           
+              onClick={() => onGenerateDocument(selectedIds, checkedTasks)}
               disabled={selectedIds.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#0052CC] text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-all shadow-md"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#0052CC] text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-all shadow-md font-bold text-sm"
             >
               <FileText className="w-4 h-4" />
               문서 확정
@@ -188,11 +204,10 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Selection Area */}
         <section className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
           <div className="flex justify-between items-center mb-5">
             <h2 className="font-bold text-slate-800">대상 환자 선택 ({selectedIds.length}명)</h2>
-            <button onClick={handleToggleAll} className="text-sm text-blue-600 font-medium hover:underline">
+            <button onClick={handleToggleAll} className="text-sm text-blue-600 font-bold hover:underline">
               {isAllSelected ? '전체 해제' : '전체 선택'}
             </button>
           </div>
@@ -202,18 +217,17 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
                 key={p.id}
                 onClick={() => setSelectedIds(prev => prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])}
                 className={cn(
-                  "px-4 py-2.5 rounded-xl border-2 transition-all flex items-center gap-2 font-medium",
+                  "px-4 py-2.5 rounded-xl border-2 transition-all flex items-center gap-2 font-bold text-sm",
                   selectedIds.includes(p.id) ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"
                 )}
               >
                 <div className={cn("w-2 h-2 rounded-full", p.status === 'danger' ? "bg-red-500" : "bg-amber-500")} />
-                {p.name} <span className="text-xs opacity-60">{p.room}호</span>
+                {p.name} <span className="text-xs opacity-60 font-medium">{p.room}호</span>
               </button>
             ))}
           </div>
         </section>
 
-        {/* Patient Detail List */}
         <div className="grid gap-6">
           {patientsList.map(patient => (
             <div 
@@ -233,19 +247,17 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
                       <span className="text-xl font-bold text-slate-900">{patient.name}</span>
                       <StatusBadge status={patient.status} />
                     </div>
-                    <p className="text-sm text-slate-500">{patient.age}세 · {patient.diagnosis} · {patient.room}호</p>
+                    <p className="text-sm text-slate-500 font-medium">{patient.age}세 · <span className="text-blue-600 font-bold">{patient.diagnosis}</span> · {patient.room}호</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-slate-400 font-semibold">
                   <Clock className="w-3.5 h-3.5" />
                   최종 기록: {patient.lastVitals.time}
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-8 items-start">
-                {/* 왼쪽 세션 영역 (바이탈 입력 및 💡업로드 시각화 블록) */}
                 <div className="space-y-6">
-                  {/* BP, HR, BT Inputs */}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-inner">
                       <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">BP (혈압)</p>
@@ -265,7 +277,7 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
                           onChange={(e) => handleLiveInputChange(patient.id, 'hr', e.target.value)}
                           className="w-full bg-transparent border-b border-transparent focus:border-blue-500 font-mono font-bold text-slate-800 focus:outline-none text-sm"
                         />
-                        <span className="text-xs text-slate-400 font-mono">bpm</span>
+                        <span className="text-xs text-slate-400 font-mono font-semibold">bpm</span>
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-inner">
@@ -277,43 +289,39 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
                           onChange={(e) => handleLiveInputChange(patient.id, 'temp', e.target.value)}
                           className="w-full bg-transparent border-b border-transparent focus:border-blue-500 font-mono font-bold text-slate-800 focus:outline-none text-sm"
                         />
-                        <span className="text-xs text-slate-400 font-mono">°C</span>
+                        <span className="text-xs text-slate-400 font-mono font-semibold">°C</span>
                       </div>
                     </div>
                   </div>
                   
-                  {/* 메모 기록 영역 */}
                   <div className="space-y-3">
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">주요 특이사항 기록</h4>
                     
-                    {/* 기본 인계 메모 (고정 출력) */}
                     {patient.notes && (
                       <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                         <div className="flex items-center gap-1.5 mb-2 text-slate-500">
                           <Clock className="w-3.5 h-3.5" />
                           <span className="text-[10px] font-bold">기본 인계 메모</span>
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">{patient.notes}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed font-medium">{patient.notes}</p>
                       </div>
                     )}
 
-                    {/* 💡 사용자가 방금 업로드(저장)한 추가 메모들이 쌓이는 공간 */}
                     {patient.addedMemos && patient.addedMemos.map((memo, idx) => (
                       <div key={idx} className="p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
                         <div className="flex items-center gap-1.5 mb-2 text-blue-600">
                           <Clock className="w-3.5 h-3.5" />
                           <span className="text-[10px] font-bold">{memo.time} 업로드됨</span>
                         </div>
-                        <p className="text-sm text-slate-800 leading-relaxed">{memo.text}</p>
+                        <p className="text-sm text-slate-800 leading-relaxed font-medium">{memo.text}</p>
                       </div>
                     ))}
 
-                    {/* 새로운 텍스트 입력창 및 입력 버튼 */}
                     <div className="pt-2">
                       <textarea 
                         value={newMemos[patient.id] || ''}
                         onChange={(e) => handleMemoChange(patient.id, e.target.value)}
-                        className="w-full p-4 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0052CC] transition-all shadow-sm"
+                        className="w-full p-4 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#0052CC] transition-all shadow-sm"
                         placeholder="새로운 특이사항을 입력하고 아래 버튼을 눌러 업로드하세요..."
                         rows={2}
                       />
@@ -329,51 +337,48 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
                   </div>
                 </div>
 
-                {/* 오른쪽 세션 영역: 💡 원본 피그마의 깔끔한 체크박스 형태로 디자인 롤백 */}
-<div className="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl shadow-inner">
-  <h4 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-    <Clock className="w-4 h-4 text-slate-400" /> 
-    <span>인계 대기 업무</span>
-  </h4>
-  
-  <div className="space-y-3">
-    {patient.pendingTasks.map((task, idx) => {
-      const taskKey = `${patient.id}-${idx}`;
-      const isTaskChecked = checkedTasks.includes(taskKey);
+                <div className="p-5 bg-slate-50/50 border border-slate-200 rounded-2xl shadow-inner">
+                  <h4 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-slate-400" /> 
+                    <span>인계 대기 업무</span>
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {patient.pendingTasks.map((task, idx) => {
+                      const taskKey = `${patient.id}-${idx}`;
+                      const isTaskChecked = checkedTasks.includes(taskKey);
 
-      return (
-        <div 
-          key={idx} 
-          onClick={() => handleToggleTask(patient.id, idx)}
-          className={cn(
-            "flex items-center gap-3 p-3 rounded-xl border shadow-2xs text-sm select-none transition-all cursor-pointer",
-            isTaskChecked 
-              ? "border-blue-600 bg-white font-semibold" 
-              : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
-          )}
-        >
-          {/* 원본 사각형 체크박스 */}
-          <div className={cn(
-            "w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0",
-            isTaskChecked ? "border-blue-600 bg-blue-50" : "border-slate-300 bg-white"
-          )}>
-            <Check className={cn(
-              "w-3 h-3 transition-all",
-              isTaskChecked ? "text-blue-600 opacity-100" : "text-transparent opacity-0"
-            )} />
-          </div>
-          
-          {/* 업무 텍스트 (체크 시 취소선) */}
-          <span className={cn(
-            "text-slate-700 font-medium", 
-            isTaskChecked && "line-through text-slate-400"
-          )}>
-            {task.task}
-          </span>
-        </div>
-      );
-    })}
-                   </div>
+                      return (
+                        <div 
+                          key={idx} 
+                          onClick={() => handleToggleTask(patient.id, idx)}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl border shadow-2xs text-sm select-none transition-all cursor-pointer",
+                            isTaskChecked 
+                              ? "border-blue-600 bg-white font-bold" 
+                              : "border-slate-200 bg-white text-slate-600 font-medium hover:border-slate-300"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0",
+                            isTaskChecked ? "border-blue-600 bg-blue-50" : "border-slate-300 bg-white"
+                          )}>
+                            <Check className={cn(
+                              "w-3 h-3 transition-all",
+                              isTaskChecked ? "text-blue-600 opacity-100" : "text-transparent opacity-0"
+                            )} />
+                          </div>
+                          
+                          <span className={cn(
+                            "text-slate-700", 
+                            isTaskChecked && "line-through text-slate-400"
+                          )}>
+                            {task.task}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

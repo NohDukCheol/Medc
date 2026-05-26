@@ -14,7 +14,7 @@ import {
   BookOpen,
   XCircle
 } from 'lucide-react';
-// 💡 대시보드와 데이터를 완벽하게 매핑 공유하기 위해 중앙 마스터 데이터베이스를 호출합니다.
+//  대시보드와 데이터를 완벽하게 매핑 공유하기 위해 중앙 마스터 데이터베이스를 호출합니다.
 import { PATIENTS_DATABASE } from './PatientList';
 
 interface PatientDetailPageProps {

@@ -1,6 +1,5 @@
 import { motion } from 'motion/react';
 import { Activity, Thermometer, Heart, AlertTriangle } from 'lucide-react';
-// 💡 상위 타입 경로 지정을 './MainDashboard.' 오타에서 './Dashboard'로 올바르게 교정했습니다.
 import { FilterStatus } from './Dashboard';
 
 export const PATIENTS_DATABASE = [
@@ -26,13 +25,130 @@ export const PATIENTS_DATABASE = [
       {
         id: 2,
         doctor: '이영희 의사',
-        time: '2026-04-10 14:00',
-        order: 'Atorvastatin 40mg PO daily\nAspirin 100mg PO daily (알레르기 주의)\nECG monitoring continuous'
+        time: '2026-04-11 11:30',
+        order: 'Follow up EKG in 2 hours\nReport immediately if chest pain recurs or dyspnea worsens'
       }
     ]
   },
   {
     id: 2,
+    name: '최서연',
+    room: '116',
+    status: 'stable',
+    age: 38,
+    gender: '여',
+    diagnosis: '맹장 수술 후',
+    badge: '정상',
+    summary: '회복 양호, 통증 관리 중',
+    vitals: { bp: '118/78', hr: 68, temp: 36.5 },
+    pendingTasks: 1,
+    doctorOrders: [
+      {
+        id: 1,
+        doctor: '박준형 의사',
+        time: '2026-05-26 07:30',
+        order: 'Soft diet as tolerated\nEncourage early ambulation q4h\nIbuprofen 400mg PO TID PRN for surgical site pain\nCheck surgical wound for signs of infection at evening shift'
+      }
+    ]
+  },
+  {
+    id: 3,
+    name: '강민지',
+    room: '214',
+    status: 'monitoring',
+    age: 29,
+    gender: '여',
+    diagnosis: '인플루엔자 A형 합병증 폐렴',
+    badge: '지속 관찰',
+    summary: '기침 및 객담 지속, SpO2 모니터링 중',
+    vitals: { bp: '115/70', hr: 88, temp: 38.2 },
+    pendingTasks: 4,
+    doctorOrders: [
+      {
+        id: 1,
+        doctor: '최세진 의사',
+        time: '2026-05-26 08:00',
+        order: 'Tamiflu 75mg PO BID\nOxygen supply via nasal cannula 2L/min to maintain SpO2 > 95%\nAcetaminophen 650mg PO q6h PRN for body temperature > 38.0°C\nEncourage fluid intake and incentive spirometry use'
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: '정태호',
+    room: '501',
+    status: 'stable', /* 💡 변경됨: 뇌졸중 회복기 안정 환자로 배정 */
+    age: 71,
+    gender: '남',
+    diagnosis: '뇌졸중 (회복기)',
+    badge: '정상',
+    summary: '활력징후 안정화, 재활 의학 협진 대기 중',
+    vitals: { bp: '130/80', hr: 72, temp: 36.6 },
+    pendingTasks: 2,
+    doctorOrders: [
+      {
+        id: 1,
+        doctor: '홍길동 의사',
+        time: '2026-04-11 06:00',
+        order: 'Neurological checks q4h\nAspirin 100mg PO daily AC'
+      },
+      {
+        id: 2,
+        doctor: '홍길동 의사',
+        time: '2026-05-26 08:30',
+        order: 'Consult with Rehabilitation Medicine for early physical therapy assessment\nMaintain NPO until swallowing screen functionality check is completed'
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: '김수연',
+    room: '405',
+    status: 'monitoring',
+    age: 45,
+    gender: '여',
+    diagnosis: '폐렴',
+    badge: '주의',
+    summary: '발열 지속 중, 항생제 투여 중',
+    vitals: { bp: '135/85', hr: 88, temp: 38.2 },
+    pendingTasks: 3,
+    doctorOrders: [
+      {
+        id: 1,
+        doctor: '이영희 의사',
+        time: '2026-04-11 09:00',
+        order: 'Ceftriaxone 2g IV q24h\nAcetaminophen 650mg PO q6h PRN for Temp >= 38.5'
+      },
+      {
+        id: 2,
+        doctor: '이영희 의사',
+        time: '2026-05-26 09:00',
+        order: 'Change IV fluid to 5% Dextrose in 0.45% NaCl when blood glucose drops below 250 mg/dL\nAssess and document patient compliance regarding diabetic foot self-care education'
+      }
+    ]
+  },
+  {
+    id: 6,
+    name: '한소희',
+    room: '109',
+    status: 'stable',
+    age: 42,
+    gender: '여',
+    diagnosis: '골절 치료',
+    badge: '정상',
+    summary: '통증 관리 중, 재활 시작',
+    vitals: { bp: '122/82', hr: 75, temp: 36.7 },
+    pendingTasks: 2,
+    doctorOrders: [
+      {
+        id: 1,
+        doctor: '장서윤 의사',
+        time: '2026-05-26 06:45',
+        order: 'Monitor IV PCA infusion pump site and check for side effects (nausea/dizziness) q4h\nCheck CBC (Hemoglobin/Hematocrit) follow-up this morning\nKeep Foley catheter until 14:00 today, then check spontaneous voiding within 6 hours'
+      }
+    ]
+  },
+  {
+    id: 7,
     name: '윤지우',
     room: '412',
     status: 'critical',
@@ -53,49 +169,7 @@ export const PATIENTS_DATABASE = [
     ]
   },
   {
-    id: 3,
-    name: '김수연',
-    room: '405',
-    status: 'monitoring',
-    age: 45,
-    gender: '여',
-    diagnosis: '폐렴',
-    badge: '주의',
-    summary: '발열 지속 중, 항생제 투여 중',
-    vitals: { bp: '135/85', hr: 88, temp: 38.2 },
-    pendingTasks: 2,
-    doctorOrders: [
-      {
-        id: 1,
-        doctor: '이영희 의사',
-        time: '2026-04-11 09:00',
-        order: 'Ceftriaxone 2g IV q24h\nAcetaminophen 650mg PO q6h PRN for Temp >= 38.5'
-      }
-    ]
-  },
-  {
-    id: 4,
-    name: '정태호',
-    room: '501',
-    status: 'monitoring',
-    age: 71,
-    gender: '남',
-    diagnosis: '뇌졸중',
-    badge: '주의',
-    summary: '활력징후 모니터링 중, 의식 명료',
-    vitals: { bp: '145/90', hr: 85, temp: 37.1 },
-    pendingTasks: 4,
-    doctorOrders: [
-      {
-        id: 1,
-        doctor: '홍길동 의사',
-        time: '2026-04-11 06:00',
-        order: 'Neurological checks q4h\nAspirin 100mg PO daily AC'
-      }
-    ]
-  },
-  {
-    id: 5,
+    id: 8,
     name: '이민호',
     room: '218',
     status: 'stable',
@@ -114,52 +188,11 @@ export const PATIENTS_DATABASE = [
         order: 'Regular Insulin SQ per sliding scale before meals'
       }
     ]
-  },
-  {
-    id: 6,
-    name: '최서연',
-    room: '116',
-    status: 'stable',
-    age: 38,
-    gender: '여',
-    diagnosis: '맹장 수술 후',
-    badge: '정상',
-    summary: '회복 양호, 통증 관리 중',
-    vitals: { bp: '118/78', hr: 68, temp: 36.5 },
-    pendingTasks: 2,
-    doctorOrders: []
-  },
-  {
-    id: 7,
-    name: '강민지',
-    room: '214',
-    status: 'stable',
-    age: 29,
-    gender: '여',
-    diagnosis: '제왕절개 후',
-    badge: '정상',
-    summary: '산후 회복 중, 상태 양호',
-    vitals: { bp: '115/75', hr: 70, temp: 36.6 },
-    pendingTasks: 1,
-    doctorOrders: []
-  },
-  {
-    id: 8,
-    name: '한소희',
-    room: '109',
-    status: 'stable',
-    age: 42,
-    gender: '여',
-    diagnosis: '골절 치료',
-    badge: '정상',
-    summary: '통증 관리 중, 재활 시작',
-    vitals: { bp: '122/82', hr: 75, temp: 36.7 },
-    pendingTasks: 2,
-    doctorOrders: []
   }
 ];
 
 interface PatientListProps {
+  patients?: typeof PATIENTS_DATABASE;
   activeFilter: FilterStatus;
   searchQuery: string;
   onPatientClick: (patientId: number) => void;
@@ -183,6 +216,12 @@ export function PatientList({ activeFilter, searchQuery, onPatientClick }: Patie
       );
     }
     return true;
+  }).sort((a, b) => {
+    // 위중(1) -> 관찰(2) -> 안정(3) 순서로 완벽하게 자동 정렬되도록 로직을 추가했습니다.
+    const statusWeight = { critical: 1, monitoring: 2, stable: 3 };
+    const weightA = statusWeight[a.status as keyof typeof statusWeight] || 4;
+    const weightB = statusWeight[b.status as keyof typeof statusWeight] || 4;
+    return weightA - weightB;
   });
 
   return (

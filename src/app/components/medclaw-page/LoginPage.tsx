@@ -15,7 +15,7 @@ export function LoginPage({ onLogin, onNavigateToSignup }: LoginPageProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // 실제 API 연동을 고려한 로직처럼 보이게 구성
+
     setTimeout(() => {
       onLogin();
       setLoading(false);

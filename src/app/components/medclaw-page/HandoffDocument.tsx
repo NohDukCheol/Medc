@@ -11,17 +11,17 @@ import {
   Activity
 } from 'lucide-react';
 import { PATIENTS_DATABASE } from '../PatientList';
+import { MASTER_HANDOFF_DB } from './HandoffPage';
 
 interface HandoffDocumentProps {
   onBack: () => void;
-  selectedPatientIds: number[]; // App.tsx에서 전달받은 실제 선택된 환자 ID 배열
+  selectedPatientIds: number[];
+  checkedTasks: string[]; 
 }
 
-export function HandoffDocument({ onBack, selectedPatientIds }: HandoffDocumentProps) {
-  // 💡 UX 개선 핵심: AI 요약 연동 지연 대기를 표시하기 위한 로딩 상태값
+export function HandoffDocument({ onBack, selectedPatientIds, checkedTasks }: HandoffDocumentProps) {
   const [isAiLoading, setIsAiLoading] = useState(true);
 
-  // 화면 진입 시 백엔드 비동기 API 수신을 시뮬레이션하기 위해 2.5초 후 로딩 해제
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsAiLoading(false);
@@ -36,15 +36,11 @@ export function HandoffDocument({ onBack, selectedPatientIds }: HandoffDocumentP
     nurse: '김민지 간호사'
   };
 
-  // 💡 [동적 매핑] 마스터 데이터베이스에서 선택된 환자 ID들과 일치하는 환자만 필터링합니다.
   const targetPatients = PATIENTS_DATABASE.filter(p => selectedPatientIds.includes(p.id));
-
-  // 예외 처리: 만약 선택된 환자가 없다면 기본적으로 앞의 2명을 렌더링합니다.
   const displayPatients = targetPatients.length > 0 ? targetPatients : PATIENTS_DATABASE.slice(0, 2);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="px-6 py-4">
           <button onClick={onBack} className="flex items-center gap-2 text-gray-600 hover:text-[#0052CC] transition-colors mb-4">
@@ -78,7 +74,6 @@ export function HandoffDocument({ onBack, selectedPatientIds }: HandoffDocumentP
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
-          {/* Document Title Header */}
           <div className="p-8 border-b border-gray-200 bg-linear-to-b from-gray-50 to-white">
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold mb-2" style={{ color: '#0052CC' }}>간호 인수인계 보고서 </h2>
@@ -103,94 +98,133 @@ export function HandoffDocument({ onBack, selectedPatientIds }: HandoffDocumentP
             </div>
           </div>
 
-          {/* 환자별 인계 리포트 출력 구역 */}
           <div className="p-8 space-y-10 divide-y divide-gray-100">
-            {displayPatients.map((patient, index) => (
-              <div key={patient.id} className={`pl-6 py-4 ${index > 0 ? 'pt-10' : ''}`} style={{ borderLeft: '4px solid #0052CC' }}>
-                
-                {/* 환자 인적 정보 라벨 */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="text-2xl font-bold text-gray-800">{patient.name}</h3>
-                    <span className="px-2.5 py-0.5 rounded text-xs font-bold" style={{ 
-                      backgroundColor: patient.status === 'critical' ? '#FEE2E2' : '#FEF3C7',
-                      color: patient.status === 'critical' ? '#991B1B' : '#92400E'
-                    }}>
-                      {patient.status === 'critical' ? '위험' : '주의'}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500 font-medium">
-                    {patient.age}세 • {patient.gender} • 병실 {patient.room}호 • <span className="text-blue-600 font-semibold">{patient.diagnosis}</span>
-                  </div>
-                </div>
+            {displayPatients.map((patient, index) => {
+              const detailedPatient = MASTER_HANDOFF_DB.find(p => p.id === patient.id);
+              const allTasks = detailedPatient?.pendingTasks || [];
+              const remainingTasks = allTasks.filter((_, idx) => !checkedTasks?.includes(`${patient.id}-${idx}`));
+              const completedTasks = allTasks.filter((_, idx) => checkedTasks?.includes(`${patient.id}-${idx}`));
 
-                {/* 💡 UX 고도화 반영: AI 요약 로딩 전용 Skeleton UI 및 안내 구역 */}
-                <div className="mb-6">
-                  <div className="text-sm font-bold text-gray-500 mb-2 flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-blue-600" />
-                    <span>AI 임상 상황 요약 브리핑 (Situation)</span>
-                  </div>
-
-                  {isAiLoading ? (
-                    /* 반짝이는 흐릿한 막대 모양의 스켈레톤 컴포넌트 */
-                    <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3 animate-pulse">
-                      <div className="flex items-center gap-2 text-blue-600 font-bold text-sm">
-                        <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        <span>AI가 차트를 분석하여 요약을 생성하고 있습니다...</span>
-                      </div>
-                      <div className="h-4 bg-gray-200 rounded w-11/12"></div>
-                      <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+              return (
+                <div key={patient.id} className={`pl-6 py-4 ${index > 0 ? 'pt-10' : ''}`} style={{ borderLeft: '4px solid #0052CC' }}>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-2xl font-bold text-gray-800">{patient.name}</h3>
+                      <span className="px-2.5 py-0.5 rounded text-xs font-bold" style={{ 
+                        backgroundColor: patient.status === 'critical' ? '#FEE2E2' : '#FEF3C7',
+                        color: patient.status === 'critical' ? '#991B1B' : '#92400E'
+                      }}>
+                        {patient.status === 'critical' ? '위험' : '주의'}
+                      </span>
                     </div>
-                  ) : (
-                    /* 백엔드 데이터 수신 완료 후 실제 요약 내용 노출 */
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl shadow-2xs">
-                      <p className="text-sm text-blue-900 leading-relaxed font-medium">
-                        [자동 요약] {patient.summary}. 현재 지속적인 환자 케어가 진행 중이며 다음 근무자의 오더 연동 업무 인계가 필요합니다.
-                      </p>
+                    <div className="text-sm text-gray-500 font-medium">
+                      {patient.age}세 • {patient.gender} • 병실 {patient.room}호 • <span className="text-blue-600 font-semibold">{patient.diagnosis}</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="text-sm font-bold text-gray-500 mb-2 flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      <span>AI 임상 상황 요약 브리핑 (Situation)</span>
+                    </div>
+
+                    {isAiLoading ? (
+                      <div className="p-5 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3 animate-pulse">
+                        <div className="flex items-center gap-2 text-blue-600 font-bold text-sm">
+                          <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          <span>AI가 차트를 분석하여 요약을 생성하고 있습니다...</span>
+                        </div>
+                        <div className="h-4 bg-gray-200 rounded w-11/12"></div>
+                        <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl shadow-2xs">
+                        <p className="text-sm text-blue-900 leading-relaxed font-medium">
+                          [자동 요약] {patient.summary}. 현재 지속적인 환자 케어가 진행 중이며 다음 근무자의 오더 연동 업무 인계가 필요합니다.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3 text-sm font-bold text-gray-500">
+                      <Activity className="w-4 h-4 text-gray-500" />
+                      <h4>마지막 측정된 임상 바이탈 (Assessment)</h4>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-3.5 bg-gray-50 rounded-lg border">
+                        <div className="text-xs text-gray-400 font-medium mb-1">혈압 (BP)</div>
+                        <div className="text-base font-mono font-bold text-gray-700">{patient.vitals.bp}</div>
+                      </div>
+                      <div className="p-3.5 bg-gray-50 rounded-lg border">
+                        <div className="text-xs text-gray-400 font-medium mb-1">심박수 (HR)</div>
+                        <div className="text-base font-mono font-bold text-gray-700">{patient.vitals.hr}회/분</div>
+                      </div>
+                      <div className="p-3.5 bg-gray-50 rounded-lg border">
+                        <div className="text-xs text-gray-400 font-medium mb-1">체온 (BT)</div>
+                        <div className="text-base font-mono font-bold text-gray-700">{patient.vitals.temp}°C</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {detailedPatient?.addedMemos && detailedPatient.addedMemos.length > 0 && (
+                    <div className="mb-6">
+                      <div className="flex items-center gap-2 mb-3 text-sm font-bold text-gray-500">
+                        <FileText className="w-4 h-4 text-blue-500" />
+                        <h4>추가 특이사항 및 간호 메모 (Nursing Notes)</h4>
+                      </div>
+                      <div className="space-y-2">
+                        {detailedPatient.addedMemos.map((memo, idx) => (
+                          <div key={idx} className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-sm text-gray-800 font-medium shadow-sm">
+                            <span className="font-bold text-blue-600 mr-2">[{memo.time}]</span>
+                            {memo.text}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
 
-                {/* 최근 활력징후 데이터 구역 */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3 text-sm font-bold text-gray-500">
-                    <Activity className="w-4 h-4 text-gray-500" />
-                    <h4>마지막 측정된 임상 바이탈 (Assessment)</h4>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-3.5 bg-gray-50 rounded-lg border">
-                      <div className="text-xs text-gray-400 font-medium mb-1">혈압 (BP)</div>
-                      <div className="text-base font-mono font-bold text-gray-700">{patient.vitals.bp}</div>
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-3 text-sm font-bold text-gray-500">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      <h4>인계 대기 업무 및 권고사항 (Recommendation)</h4>
                     </div>
-                    <div className="p-3.5 bg-gray-50 rounded-lg border">
-                      <div className="text-xs text-gray-400 font-medium mb-1">심박수 (HR)</div>
-                      <div className="text-base font-mono font-bold text-gray-700">{patient.vitals.hr}회/분</div>
-                    </div>
-                    <div className="p-3.5 bg-gray-50 rounded-lg border">
-                      <div className="text-xs text-gray-400 font-medium mb-1">체온 (BT)</div>
-                      <div className="text-base font-mono font-bold text-gray-700">{patient.vitals.temp}°C</div>
-                    </div>
-                  </div>
-                </div>
+                    <div className="space-y-2">
+                      {remainingTasks.length > 0 ? (
+                        remainingTasks.map((task, idx) => (
+                          <div key={`rem-${idx}`} className="p-3 rounded-lg border bg-amber-50/40 border-amber-200 text-sm font-medium text-amber-900 flex justify-between items-center">
+                            <span>• [{task.time}] {task.task}</span>
+                            <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded">미완료 연동됨</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 rounded-lg border bg-emerald-50 border-emerald-200 text-sm font-medium text-emerald-800">
+                          • 예정된 모든 인계 대기 업무가 완료되었습니다.
+                        </div>
+                      )}
 
-                {/* 인계 대기 업무 내역 */}
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-3 text-sm font-bold text-gray-500">
-                    <AlertTriangle className="w-4 h-4 text-amber-500" />
-                    <h4>인계 대기 업무 및 권고사항 (Recommendation)</h4>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="p-3 rounded-lg border bg-amber-50/40 border-amber-200 text-sm font-medium text-amber-900">
-                      • 오더 기반 자동 생성된 {patient.pendingTasks}건의 미완료 업무 연동 확인 및 모니터링 프로토콜 지속 수행 요망
+                      {completedTasks.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
+                          <div className="text-xs font-bold text-gray-400 mb-2">이전 근무자 처리 완료 업무 내역</div>
+                          {completedTasks.map((task, idx) => (
+                            <div key={`comp-${idx}`} className="p-2 rounded-lg border bg-gray-50 border-gray-200 text-sm font-medium text-gray-500 flex justify-between items-center">
+                              <span className="line-through">• [{task.time}] {task.task}</span>
+                              <span className="text-xs font-bold bg-gray-200 text-gray-600 px-2 py-0.5 rounded flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3"/> 인계 전 조치 완료
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
 
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Document Footer */}
           <div className="p-8 border-t border-gray-200 bg-gray-50 flex flex-col gap-4">
             <div className="flex items-center justify-between text-xs text-gray-400 font-medium">
               <div className="flex items-center gap-1.5"><CheckCircle className="w-4 h-4 text-emerald-500" /><span>인계 데이터 전자 검증 완료</span></div>

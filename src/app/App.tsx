@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginPage } from './components/medclaw-page/LoginPage';
 import { MainDashboard as Dashboard } from './components/medclaw-page/MainDashboard';
 import { PatientDetailPage } from './components/medclaw-page/PatientDetailPage';
@@ -22,7 +22,13 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('login');
   const [selectedPatientId, setSelectedPatientId] = useState<number>(1);
   const [handoffPatientIds, setHandoffPatientIds] = useState<number[]>([]);
+  // 체크된 업무 목록을 저장할 상태 추가
+  const [handoffCheckedTasks, setHandoffCheckedTasks] = useState<string[]>([]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
+  
   const handleLogin = () => {
     setCurrentView('dashboard');
   };
@@ -58,8 +64,10 @@ export default function App() {
     setCurrentView('patient-detail');
   };
 
-  const handleGenerateHandoffDocument = (selectedIds: number[]) => {
+  // 💡 HandoffPage에서 확정 시 체크된 업무 배열(checkedTasks)도 함께 받아옴
+  const handleGenerateHandoffDocument = (selectedIds: number[], checkedTasks: string[]) => {
     setHandoffPatientIds(selectedIds || []);
+    setHandoffCheckedTasks(checkedTasks || []);
     setCurrentView('handoff-document');
   };
 
@@ -67,7 +75,6 @@ export default function App() {
     setCurrentView('handoff');
   };
 
-  // 💡 간호 브리핑 모드 제어용 이벤트 액션 함수들
   const handleNursingBriefingClick = () => {
     setCurrentView('nursing-briefing');
   };
@@ -78,7 +85,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {/* 1. 로그인 화면 */}
       {currentView === 'login' && (
         <LoginPage 
           onLogin={handleLogin} 
@@ -86,7 +92,6 @@ export default function App() {
         />
       )}
 
-      {/* 2. 메인 대시보드 화면 */}
       {currentView === 'dashboard' && (
         <Dashboard
           onLogout={handleLogout}
@@ -95,7 +100,6 @@ export default function App() {
         />
       )}
 
-      {/* 3. 환자 상세 정보 페이지 */}
       {currentView === 'patient-detail' && (
         <PatientDetailPage
           patientId={selectedPatientId}
@@ -105,7 +109,6 @@ export default function App() {
         />
       )}
 
-      {/* 4. 실시간 바이탈징후 입력 페이지 */}
       {currentView === 'vitals-input' && (
         <VitalsInputPage
           patientId={selectedPatientId}
@@ -113,7 +116,6 @@ export default function App() {
         />
       )}
 
-      {/* 5. 맞춤형 환자 교육 페이지 */}
       {currentView === 'patient-education' && (
         <PatientEducationPage
           patientId={selectedPatientId}
@@ -121,24 +123,22 @@ export default function App() {
         />
       )}
 
-      {/* 6. 스마트 인수인계 세션 준비 페이지 */}
       {currentView === 'handoff' && (
         <HandoffPage
           onBack={handleBackToDashboard}
           onGenerateDocument={handleGenerateHandoffDocument}
-          onNursingBriefingClick={handleNursingBriefingClick} // 💡 브리핑 트리거 연동
+          onNursingBriefingClick={handleNursingBriefingClick}
         />
       )}
 
-      {/* 7. 실시간 인계 최종 완성 문서 패널 */}
       {currentView === 'handoff-document' && (
         <HandoffDocument 
           onBack={handleBackToHandoff} 
           selectedPatientIds={handoffPatientIds} 
+          checkedTasks={handoffCheckedTasks} // 💡 최종 문서 컴포넌트로 전달
         />
       )}
 
-      {/* 8. 간호 인계 타임라인 브리핑 화면 */}
       {currentView === 'nursing-briefing' && (
         <NursingHandoffBriefing
           onBack={handleBackToDashboardFromBriefing}

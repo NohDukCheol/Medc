@@ -8,9 +8,11 @@ import {
   LogOut,
   Heart,
   FileText,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { PatientList } from './PatientList';
 
 interface DashboardProps {
@@ -19,18 +21,23 @@ interface DashboardProps {
   onHandoffClick: () => void;
 }
 
-// 💡 앞에 export를 붙여서 PatientList가 정상적으로 참조할 수 있도록 수정했습니다.
 export type FilterStatus = 'all' | 'critical' | 'monitoring' | 'stable';
 
 export function Dashboard({ onLogout, onPatientClick, onHandoffClick }: DashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('all');
+  const [showNotification, setShowNotification] = useState(false);
 
   const stats = [
     { type: 'all' as FilterStatus, label: '담당 환자 (전체)', value: '8', icon: Users, trend: '클릭 시 전체 보기' },
     { type: 'critical' as FilterStatus, label: '위험 업무 (위중)', value: '2', icon: Activity, trend: '클릭 시 위험 환자 필터링', color: '#EF4444' },
     { type: 'monitoring' as FilterStatus, label: '주의 업무 (관찰)', value: '2', icon: ClipboardList, trend: '클릭 시 주의 환자 필터링', color: '#F59E0B' },
     { type: 'stable' as FilterStatus, label: '대기 업무 (안정)', value: '4', icon: Heart, trend: '클릭 시 대기 환자 필터링', color: '#10B981' },
+  ];
+
+  const alertTasks = [
+    { id: 1, room: '301', name: '박지민', task: '헤파린 5000 units IV 투여', time: '14:00' },
+    { id: 2, room: '412', name: '윤지우', task: '소변량 체크 및 BP 모니터링', time: '14:00' },
   ];
 
   return (
@@ -54,10 +61,51 @@ export function Dashboard({ onLogout, onPatientClick, onHandoffClick }: Dashboar
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            <div 
+              className="relative"
+              onMouseEnter={() => setShowNotification(true)}
+              onMouseLeave={() => setShowNotification(false)}
+            >
+              <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <Bell className="w-5 h-5 text-gray-600" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              </button>
+
+              <AnimatePresence>
+                {showNotification && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-xl shadow-xl py-3 z-50"
+                  >
+                    <div className="px-4 py-1.5 border-b border-gray-100 flex items-center justify-between">
+                      {/*  아이콘과 글씨 타이틀을 '미완료 업무'로 변경하고 연한 빨간색(text-red-500)을 부여했습니다. */}
+                      <span className="text-xs font-bold text-red-500 flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-400" /> 미완료 업무
+                      </span>
+                      {/*  대기 건수 배지는 평범한 회색/검은색 계열 유지 */}
+                      <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-full">2건</span>
+                    </div>
+                    <div className="divide-y divide-gray-50 max-h-60 overflow-y-auto">
+                      {alertTasks.map(task => (
+                        <div key={task.id} className="p-3 hover:bg-slate-50 transition-colors">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-gray-800">{task.name} ({task.room}호)</span>
+                            {/*  시간 텍스트는 일반 회색 유지 */}
+                            <span className="text-[10px] text-gray-500 font-mono flex items-center gap-0.5">
+                              <Clock className="w-2.5 h-2.5" /> {task.time}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 font-medium leading-relaxed">{task.task}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div className="h-6 w-px bg-gray-300" />
             <div className="flex items-center gap-3">
               <div className="text-right">
@@ -115,7 +163,6 @@ export function Dashboard({ onLogout, onPatientClick, onHandoffClick }: Dashboar
           })}
         </div>
 
-        {/* 피그마형 환자 그리드 레이아웃 100% 꽉 차게 배치 */}
         <div className="grid grid-cols-12 gap-6">
           <div className="col-span-12">
             <PatientList 
@@ -126,7 +173,6 @@ export function Dashboard({ onLogout, onPatientClick, onHandoffClick }: Dashboar
           </div>
         </div>
 
-        {/* 하단 스마트 인계 가이드 링크 버튼 */}
         <div className="grid grid-cols-1">
           <motion.button
             initial={{ opacity: 0, y: 10 }}
