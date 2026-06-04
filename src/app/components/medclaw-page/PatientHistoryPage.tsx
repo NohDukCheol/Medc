@@ -6,7 +6,7 @@ interface PatientHistoryPageProps {
   onBack: () => void;
 }
 
-// 💡 환자별 동적 과거 진료 기록(차팅) 팩토리
+//  환자별 동적 과거 진료 기록(차팅) 팩토리
 const getPatientHistoryData = (id: number) => {
   switch (id) {
     case 1: // 박지민 (급성 심근경색)
@@ -125,7 +125,7 @@ export function PatientHistoryPage({ patientId, onBack }: PatientHistoryPageProp
                     {item}
                   </li>
                 ))}
-              </ul> {/* 💡 </div>를 </ul>로 수정하여 React 컴파일 에러 해결 */}
+              </ul> 
             </div>
           </div>
 
