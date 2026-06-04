@@ -22,9 +22,10 @@ interface PatientDetailPageProps {
   onBack: () => void;
   onVitalsClick: (patientId: number) => void;
   onEducationClick: (patientId: number) => void;
+  onHistoryClick?: (patientId: number) => void;
 }
 
-export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducationClick }: PatientDetailPageProps) {
+export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducationClick, onHistoryClick }: PatientDetailPageProps) {
   const [newOrder, setNewOrder] = useState('');
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [hoveredSummaryItem, setHoveredSummaryItem] = useState<number | null>(null);
@@ -242,9 +243,15 @@ export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducatio
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F1F5F9' }}>
-                <User className="w-8 h-8" style={{ color: '#94A3B8' }} />
-              </div>
+              <button 
+                onClick={() => onHistoryClick && onHistoryClick(patientId)}
+                className="w-16 h-16 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer border border-transparent hover:border-blue-300 group shadow-sm" 
+                style={{ backgroundColor: '#F1F5F9' }}
+                title="이전 진료 기록 및 차팅 보기"
+              >
+                <User className="w-8 h-8 group-hover:text-[#0052CC] transition-colors" style={{ color: '#94A3B8' }} />
+              </button>
+              
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   {/* 💡 동적 매핑 연동 구역: 타겟 환자의 이름 출력 */}

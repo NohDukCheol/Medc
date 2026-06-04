@@ -23,6 +23,7 @@ interface PatientDetailPageProps {
   onBack: () => void;
   onVitalsClick: (patientId: number) => void;
   onEducationClick: (patientId: number) => void;
+  onHistoryClick?: (patientId: number) => void; // 💡 연동을 위한 Props 추가
 }
 
 // 각 환자의 진단명과 처방에 어우러지는 AI 분석 데이터를 동적 반환하는 마스터 명세 팩토리
@@ -312,7 +313,7 @@ const getDynamicAIContent = (id: number) => {
   }
 };
 
-export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducationClick }: PatientDetailPageProps) {
+export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducationClick, onHistoryClick }: PatientDetailPageProps) {
   const [newOrder, setNewOrder] = useState('');
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [hoveredSummaryItem, setHoveredSummaryItem] = useState<number | null>(null);
@@ -378,9 +379,16 @@ export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducatio
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#F1F5F9' }}>
-                <User className="w-8 h-8" style={{ color: '#94A3B8' }} />
-              </div>
+              {/* 💡 연동된 히스토리 버튼 영역 */}
+              <button 
+                onClick={() => onHistoryClick && onHistoryClick(patientId)}
+                className="w-16 h-16 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors cursor-pointer border border-transparent hover:border-blue-300 group shadow-sm" 
+                style={{ backgroundColor: '#F1F5F9' }}
+                title="이전 진료 기록 및 차팅 보기"
+              >
+                <User className="w-8 h-8 group-hover:text-[#0052CC] transition-colors" style={{ color: '#94A3B8' }} />
+              </button>
+              
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <h1 className="text-2xl font-bold" style={{ color: '#1E293B' }}>{targetPatient.name}</h1>
@@ -689,10 +697,9 @@ export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducatio
             </div>
           </div>
 
-          {/* 💡 우측 컬럼: 모니터링 카드 디자인 복구 및 Sticky 적용 */}
           <div className="space-y-6">
             
-            {/* 1. 환자 실시간 모니터링 스펙 (둥근 파스텔 카드 스타일로 롤백 수정됨) */}
+            {/* 1. 환자 실시간 모니터링 스펙 */}
             <div className="bg-white border p-6 shadow-sm transition-shadow" style={{ borderRadius: '16px', borderColor: '#E2E8F0' }}>
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-2 rounded-xl" style={{ backgroundColor: '#EFF6FF' }}>
@@ -722,7 +729,7 @@ export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducatio
               </div>
             </div>
 
-            {/* 2. AI 실시간 이상 징후 분석 컴포넌트 구역 (간호인계 페이지와 완벽하게 동일한 디자인 및 Sticky 적용) */}
+            {/* 2. AI 실시간 이상 징후 분석 컴포넌트 구역 */}
             <div className="bg-white border sticky top-28" style={{ borderRadius: '12px', borderColor: '#E2E8F0' }}>
               <div className="p-6 border-b" style={{ borderColor: '#E2E8F0' }}>
                 <div className="flex items-center gap-2">
