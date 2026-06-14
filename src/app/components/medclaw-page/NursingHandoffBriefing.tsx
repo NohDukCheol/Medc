@@ -16,8 +16,8 @@ interface TimelineItem {
 }
 
 export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHandoffBriefingProps) {
-  // 현재 시간을 14:00로 가정
-  const currentTime = '14:00';
+  // 현재 시간을 이브닝번 인수인계 시점인 15:00로 설정
+  const currentTime = '15:00';
 
   const [taskCompletionStatus, setTaskCompletionStatus] = useState<{ [key: number]: boolean }>({});
 
@@ -31,77 +31,67 @@ export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHando
   const timelineItems: TimelineItem[] = [
     {
       id: 1,
-      time: '08:00',
-      content: '활력징후 측정 - BP 165/95, HR 98, RR 18, SpO2 98%',
+      time: '07:00',
+      content: '[나이트 인수인계] 체온 37.6°C · HR 92 · RR 20 · BP 122/74 · SpO2 94% (O2 2L). 오더: Ceftriaxone 2g IV, 혈당 체크, Insulin sliding scale',
       category: '간호 기록'
     },
     {
       id: 2,
-      time: '09:00',
-      content: '아테놀올 50mg PO 투여',
+      time: '08:30',
+      content: '[오전 활력징후 측정] 체온 38.5°C · HR 112 · RR 26 · SpO2 91% (O2 2L). 추가 오더: 흉부 X-ray 재촬영',
       category: '간호 기록'
     },
     {
       id: 3,
-      time: '09:30',
-      content: '아침 식사 섭취 70%, 수분 섭취 200mL',
+      time: '09:00',
+      content: '[혈당 상승 확인] 혈당 248mg/dL. 오더: Regular insulin 4U SC 투여',
       category: '간호 기록'
     },
     {
       id: 4,
       time: '10:00',
-      content: '활력징후 측정 - BP 160/92, HR 85, RR 36.7°C',
-      category: '간호 기록'
+      content: '[저혈당 발생] 혈당 62mg/dL (식이 섭취 감소 + 인슐린 투여 영향). 처치: 저혈당 처치 시행, 인슐린 일시 중단',
+      category: '간호 기록',
+      priority: 'high'
     },
     {
       id: 5,
-      time: '11:30',
-      content: '신체 활동 - 병동 복도 10분 걷기',
-      category: '간호 기록'
+      time: '11:20',
+      content: '[저혈압/저산소혈증 발생] BP 92/58 · HR 118 · RR 28 · SpO2 89% (O2 2L). 처치: 산소 5L로 증량, 패혈증 가능성 평가 시작',
+      category: '간호 기록',
+      priority: 'high'
     },
     {
       id: 6,
-      time: '12:00',
-      content: '점심 식사 섭취 80%, 수분 섭취 250mL',
+      time: '11:40',
+      content: '[의식/소변량 저하] 의식 명료하나 처진 모습, 소변량 감소. 추가 오더: Lactate, Blood culture x 2 set, Sputum culture',
       category: '간호 기록'
     },
     {
       id: 7,
-      time: '13:00',
-      content: '활력징후 측정 - BP 158/90, HR 82, RR 36.8°C',
+      time: '12:10',
+      content: '[처치 변경] BP 88/54. 오더: NS 500mL bolus, Ceftriaxone -> Piperacillin/Tazobactam 변경. Metformin continue 유지',
       category: '간호 기록'
     },
     {
       id: 8,
-      time: '14:00',
-      content: '배변시 기록 안함',
-      category: '미완료 업무',
-      priority: 'high',
-      assignee: '기록 누락'
+      time: '13:00',
+      content: '[검사 결과 확인] Lactate 2.8mmol/L (정상 0.5~2.0) · 혈당 276mg/dL',
+      category: '간호 기록'
     },
     {
       id: 9,
-      time: '15:00',
-      content: '활력징후 측정',
-      category: '미완료 업무',
-      priority: 'high',
-      assignee: '측정 필요'
+      time: '14:00',
+      content: '[부분 안정화] SpO2 92% (O2 5L 유지) · BP 96/60 · HR 108',
+      category: '간호 기록'
     },
     {
       id: 10,
-      time: '17:00',
-      content: '저녁 투약 (아테놀올 50mg)',
+      time: '15:00',
+      content: '이브닝 교대 인수인계 (저혈당 및 젖산산증 모니터링 요망)',
       category: '미완료 업무',
-      priority: 'normal',
-      assignee: '밤번 A간 전근호'
-    },
-    {
-      id: 11,
-      time: '18:00',
-      content: '거동 시 낙상 안전 확인',
-      category: '미완료 업무',
-      priority: 'normal',
-      assignee: '야간근'
+      priority: 'high',
+      assignee: '이브닝 근무자'
     }
   ];
 
@@ -114,20 +104,17 @@ export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHando
       return 'border-blue-300';
     }
 
-    // 미완료 업무인 경우
     if (itemHour < currentHour) {
-      // 시간 지남
       if (isCompleted) {
-        return 'border-orange-400'; // 시간 지났는데 완료 (늦게 완료)
+        return 'border-orange-400';
       } else {
-        return 'border-red-400'; // 시간 지났는데 미완료
+        return 'border-red-400';
       }
     } else {
-      // 시간 안 지남
       if (isCompleted) {
-        return 'border-blue-400'; // 시간 안 지났는데 완료
+        return 'border-blue-400';
       } else {
-        return 'border-yellow-400'; // 시간 안 지났는데 미완료
+        return 'border-yellow-400';
       }
     }
   };
@@ -141,20 +128,17 @@ export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHando
       return 'bg-blue-50';
     }
 
-    // 미완료 업무인 경우
     if (itemHour < currentHour) {
-      // 시간 지남
       if (isCompleted) {
-        return 'bg-orange-50'; // 시간 지났는데 완료 (늦게 완료)
+        return 'bg-orange-50';
       } else {
-        return 'bg-red-50'; // 시간 지났는데 미완료
+        return 'bg-red-50';
       }
     } else {
-      // 시간 안 지남
       if (isCompleted) {
-        return 'bg-blue-50'; // 시간 안 지났는데 완료
+        return 'bg-blue-50';
       } else {
-        return 'bg-yellow-50'; // 시간 안 지났는데 미완료
+        return 'bg-yellow-50';
       }
     }
   };
@@ -163,33 +147,27 @@ export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHando
     {
       id: 1,
       type: 'caution',
-      title: '기록 누락',
-      content: '15:00 활력징후 측정 기록 누락되어 작성 바랍니다.',
-      details: '30분째 기록지 3시대 활력징후를 측정하지 않았으나, 13:00 시점 기록이 안되었습니다.'
+      title: '젖산산증(Lactic Acidosis) 고위험 경고',
+      content: 'Metformin 처방이 유지된 상태에서 패혈증 의심 소견 및 Lactate 수치(2.8)가 상승했습니다.',
+      details: '메트포르민 투여 중 조직 저관류(BP 88/54) 발생 시 치명적인 젖산산증이 유발될 수 있습니다. ABGA 및 Lactate 추적 검사가 시급합니다.'
     },
     {
       id: 2,
       type: 'warning',
-      title: '수분 섭취량 불일치',
-      content: '08:30 (300mL) + 13:00 (180mL) + 450mL여서, 섭취량 부족 섭취량(930mL)로 보면, 섭취는 하루 섭취 1500mL로 부족합니다.'
+      title: '극심한 혈당 변동성 (Hypo/Hyperglycemia)',
+      content: '09:00(248) -> 10:00(62) -> 13:00(276)으로 혈당 스파이크 및 크래시가 반복되고 있습니다.',
+      details: '감염 스트레스와 식사량 감소가 혼재되어 있습니다. 인슐린 재투여 전 주치의와 Target BST 재설정이 필요합니다.'
     },
     {
       id: 3,
-      type: 'info',
-      title: '혈압 양호 추세 모니터링',
-      content: '08:00 (165/95) → 10:00 (160/92) → 13:00 (158/90)로 감소 중입니다.'
-    },
-    {
-      id: 4,
-      type: 'info',
-      title: '환자의 약물 모니터링 상태',
-      content: '아침 교대 주치의로, 주치의 도착약은 후에 복약 활동 영향'
+      type: 'warning',
+      title: '패혈성 쇼크 진행 모니터링',
+      content: '11:20부터 시작된 저혈압이 수액 bolus 및 항생제(Piperacillin/Tazobactam) 변경 후 14:00 기준 MAP 72로 부분 안정화 되었습니다.'
     }
   ];
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#F8FAFC' }}>
-      {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10" style={{ borderColor: '#E2E8F0' }}>
         <div className="max-w-[1440px] mx-auto px-8 py-4">
           <button
@@ -220,16 +198,14 @@ export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHando
           </div>
 
           <div className="flex items-center gap-4 text-sm mt-2" style={{ color: '#64748B' }}>
-            <span>박지민 (67세, 남) • 병실 301 • 급성 심근경색</span>
+            <span>김말순 (78세, 여) • 병실 305 • 지역사회획득폐렴(CAP) / 제2형 당뇨</span>
           </div>
         </div>
       </header>
 
       <main className="max-w-[1440px] mx-auto px-8 py-8">
         <div className="grid grid-cols-3 gap-6">
-          {/* Left Column - Timeline */}
           <div className="col-span-2 space-y-6">
-            {/* Timeline */}
             <div className="bg-white border" style={{ borderRadius: '12px', borderColor: '#E2E8F0' }}>
               <div className="p-6 border-b" style={{ borderColor: '#E2E8F0' }}>
                 <div className="flex items-center gap-2">
@@ -287,7 +263,6 @@ export function NursingHandoffBriefing({ onBack, onBackToHandoff }: NursingHando
             </div>
           </div>
 
-          {/* Right Column - AI Analysis */}
           <div className="space-y-6">
             <div className="bg-white border sticky top-24" style={{ borderRadius: '12px', borderColor: '#E2E8F0' }}>
               <div className="p-6 border-b" style={{ borderColor: '#E2E8F0' }}>

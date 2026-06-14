@@ -28,7 +28,6 @@ export interface Patient {
 
 interface HandoffPageProps {
   onBack: () => void;
- 
   onGenerateDocument: (selectedIds: number[], checkedTasks: string[]) => void;
   onNursingBriefingClick: () => void;
 }
@@ -36,7 +35,28 @@ interface HandoffPageProps {
 // 💡 HandoffDocument에서 이 상세 데이터를 끌어다 쓸 수 있도록 export 추가
 export const MASTER_HANDOFF_DB: Patient[] = [
   {
-    id: 1, name: '박지민', age: 67, room: '301', diagnosis: '급성 심근경색', status: 'danger',
+    id: 2, 
+    name: '임애순', 
+    age: 78, 
+    room: '305', 
+    diagnosis: '지역사회획득폐렴(CAP)', 
+    status: 'danger',
+    lastVitals: { time: '14:00', bp: '96/60', hr: '108', temp: '38.5' },
+    completedTasks: ['저혈당 응급 처치 (10:00)', 'Blood culture 2세트 (11:40)', 'NS 500mL bolus (12:10)'],
+    pendingTasks: [
+      { time: '15:00', task: 'BST 재측정 및 인슐린 오더 확인', reason: '혈당 62 -> 276 급변동, 주치의 컨펌 필요', supplies: ['혈당기'], guide: true },
+      { time: '16:00', task: '젖산 추적 검사', reason: 'Metformin 유지에 따른 젖산산증(Lactate 2.8) 추적', supplies: ['채혈도구'], guide: false }
+    ],
+    notes: '오전 중 저혈당(62), 저혈압(88/54) 발생 후 항생제 타조신으로 스텝업. 현재 O2 5L 유지 중이며 패혈증 및 젖산산증 진행 여부 면밀한 관찰 요망.',
+    addedMemos: []
+  },
+  {
+    id: 1, 
+    name: '박지민', 
+    age: 67, 
+    room: '301', 
+    diagnosis: '급성 심근경색', 
+    status: 'danger',
     lastVitals: { time: '13:00', bp: '160/95', hr: '102', temp: '37.8' },
     completedTasks: ['활력징후 측정 (12:00)', '니트로글리세린 투여 (12:30)', 'IV 라인 교체 (13:00)'],
     pendingTasks: [
@@ -48,7 +68,12 @@ export const MASTER_HANDOFF_DB: Patient[] = [
     addedMemos: []
   },
   {
-    id: 5, name: '김수연', age: 45, room: '405', diagnosis: '폐렴', status: 'caution',
+    id: 5, 
+    name: '김수연', 
+    age: 45, 
+    room: '405', 
+    diagnosis: '폐렴', 
+    status: 'caution',
     lastVitals: { time: '12:30', bp: '135/85', hr: '88', temp: '38.2' },
     completedTasks: ['항생제 IV 투여 (11:00)', '활력징후 측정 (12:00)', '해열제 투여 (12:30)'],
     pendingTasks: [
@@ -59,7 +84,12 @@ export const MASTER_HANDOFF_DB: Patient[] = [
     addedMemos: []
   },
   {
-    id: 7, name: '윤지우', age: 58, room: '412', diagnosis: '패혈증', status: 'danger',
+    id: 7, 
+    name: '윤지우', 
+    age: 58, 
+    room: '412', 
+    diagnosis: '패혈증', 
+    status: 'danger',
     lastVitals: { time: '13:30', bp: '90/60', hr: '115', temp: '39.1' },
     completedTasks: ['광범위 항생제 IV 투여 (12:00)', '활력징후 측정 (13:00)', '승압제 투여 (13:30)'],
     pendingTasks: [
@@ -191,7 +221,6 @@ export function HandoffPage({ onBack, onGenerateDocument, onNursingBriefingClick
               브리핑 모드
             </button>
             <button 
-           
               onClick={() => onGenerateDocument(selectedIds, checkedTasks)}
               disabled={selectedIds.length === 0}
               className="flex items-center gap-2 px-5 py-2.5 bg-[#0052CC] text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-all shadow-md font-bold text-sm"

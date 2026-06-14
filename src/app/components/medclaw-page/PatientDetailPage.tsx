@@ -78,36 +78,35 @@ const getDynamicAIContent = (id: number) => {
           { id: 4, time: '16:00', task: '활력징후 측정', reason: '오더: "Monitor vital signs q2h" → 2시간마다 측정', supplies: ['혈압계', '체온계', '청진기'], guide: true }
         ]
       };
-    case 2: // 최서연 (맹장 수술 후)
+    case 2: // 임애순 (지역사회획득폐렴, 패혈증 악화)
       return {
         summary: [
           {
-            text: 'Ibuprofen 400mg PO TID 처방에 따른 수술 통증 조절',
+            text: '항생제 Piperacillin/Tazobactam 4.5g IV q8h 로 스텝업 변경',
             medicationGuide: {
-              name: '이부프로펜 투약 가이드',
-              usage: '수술 부위 통증 경감을 위해 400mg PO 식후 경구 투여',
-              precautions: ['위장관계 부작용을 줄이기 위해 식후 복용 권장', '출혈 경향성 증가 및 빈혈 징후 감시'],
-              contraindications: ['활동성 소화성 궤양 환자', '아스피린 천식 병력 환자'],
-              youtubeGuide: 'https://youtube.com/watch?v=ibuprofen-guide'
+              name: '광범위 항생제(타조신) 가이드',
+              usage: '패혈증 의심 시 8시간 간격 정맥 투여',
+              precautions: ['페니실린계 아나필락시스 쇼크 주의', '정맥염 발생 부위 관찰'],
+              contraindications: ['페니실린 쇼크 과거력'],
+              youtubeGuide: 'https://youtube.com/watch?v=antibiotics'
             }
           },
-          { text: '장폐색 예방 및 장운동 촉진을 위해 매 4시간마다 조기 이상(Ambulation) 수행 격려', medicationGuide: null },
-          { text: '저녁 근무(Evening Shift) 시 수술 절개 부위 감염 및 삼출물 양상 정밀 관찰', medicationGuide: null },
-          { text: '수술 후 가스 배출(Flatus) 여부 및 식이 진행 단계 모니터링', medicationGuide: null }
+          { text: '패혈증 처치 묶음: Blood culture 2세트 완료 후 항생제 투여됨', medicationGuide: null },
+          { text: 'Metformin continue 오더에 따른 젖산산증 발생 징후 관찰', medicationGuide: null }
         ],
         highlights: [
-          { type: 'critical', text: '수술 절개 부위 거즈에 선홍색 급격한 배액이나 출혈 발견 시 즉시 보고' },
-          { type: 'warning', text: '통증 점수(NRS) 7점 이상 돌파 시 담당의에게 추가 조절 진통제 협의' },
-          { type: 'info', text: '수술 후 초기 배뇨 기능 안정적으로 회복 완료 확인됨' }
+          { type: 'critical', text: '저혈당(62) 과거력: 인슐린 투여 보류 중, 수시 BST 확인 요망' },
+          { type: 'warning', text: '패혈증성 저혈압: SBP 90 미만 강하 시 신속 노티' },
+          { type: 'info', text: 'O2 5L 적용 하에 SpO2 92%로 부분 안정화' }
         ],
         analysis: [
-          { title: '수술 피크기 통증 조절 안정세', detail: '수술 후 NRS 통증 점수 3점으로 안정적이나, 조기 이상 시 기립성 저혈압 및 어지러움 사정 요망.', type: 'stable' },
-          { title: '장운동(Bowel Sound) 감소 상태', detail: '수술 후 전신마취 영향으로 장음이 감소되어 있음. 가스 배출(Flatus) 전까지 지속적인 NPO 유지 및 조기 보행 격려.', type: 'warning' }
+          { title: '패혈성 쇼크 전조 징후', detail: '의식 저하 및 핍뇨(소변량 감소) 동반됨. 중심정맥압(CVP) 또는 시간당 U/O 엄격 모니터링 요망.', type: 'danger' },
+          { title: '메트포르민 연관 젖산산증', detail: 'Lactate 2.8로 상승. 메트포르민 지속 복용 중 저관류 발생 시 대사성 산증 위험 극대화.', type: 'danger' }
         ],
         tasks: [
-          { id: 21, time: '14:00', task: '조기 이상(Ambulation) 보행 수행 지원', reason: '오더: "Encourage early ambulation q4h" 조기 보행을 통한 유착 및 혈전 합병증 차단', supplies: ['보행 보조기', '미끄럼방지 양말'], guide: true },
-          { id: 22, time: '16:00', task: '수술 부위 감염(Wound Check) 징후 확인', reason: '오더: 저녁 근무 인계에 따른 절개선 발적, 열감, 화농성 삼출물 검사', supplies: ['멸균 장갑', '소독솜 세트', '드레싱 거즈'], guide: true },
-          { id: 23, time: '18:00', task: '이부프로펜 400mg PO 식후 투여', reason: '오더: "Ibuprofen 400mg PO TID PRN" 정시 위장 보호식 연동 처방 준수', supplies: ['처방 약품', '물컵'], guide: false }
+          { id: 21, time: '15:00', task: 'BST(간이혈당) 추적 측정', reason: '10:00 저혈당 쇼크 및 13:00 반등(276)에 따른 혈당 변동성 감시', supplies: ['혈당계', '채혈침'], guide: true },
+          { id: 22, time: '15:00', task: '시간당 소변량(U/O) 체크', reason: '11:40 소변량 감소 기록, 패혈증성 신손상(AKI) 평가', supplies: ['소변계량컵'], guide: false },
+          { id: 23, time: '16:00', task: 'Follow-up Lactate Lab', reason: '젖산산증 진행 여부 확인을 위한 추적 혈액 검사', supplies: ['채혈관', '토니켓'], guide: true }
         ]
       };
     case 3: // 강민지 (인플루엔자 A형 합병증 폐렴)

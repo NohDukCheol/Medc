@@ -4,6 +4,39 @@ import { FilterStatus } from './Dashboard';
 
 export const PATIENTS_DATABASE = [
   {
+    id: 2, // 기존 2번을 시나리오 환자로 교체하고 맨 위로 배치
+    name: '임애순',
+    room: '305',
+    status: 'critical',
+    age: 78,
+    gender: '여',
+    diagnosis: '지역사회획득폐렴(CAP)',
+    badge: '우선 처치 필요',
+    summary: '패혈증 의심 및 저혈당 발생. 메트포르민 복용 유지 중으로 젖산산증 주의',
+    vitals: { bp: '96/60', hr: 108, temp: 38.5 },
+    pendingTasks: 3,
+    doctorOrders: [
+      {
+        id: 1,
+        doctor: '호흡기내과 주치의',
+        time: '2026-06-14 07:00',
+        order: 'Ceftriaxone 2g IV\nCheck BST\nInsulin sliding scale'
+      },
+      {
+        id: 2,
+        doctor: '호흡기내과 주치의',
+        time: '2026-06-14 11:40',
+        order: 'Lactate\nBlood culture x 2 set\nSputum culture'
+      },
+      {
+        id: 3,
+        doctor: '호흡기내과 주치의',
+        time: '2026-06-14 12:10',
+        order: 'NS 500mL IV bolus\nD/C Ceftriaxone\nStart Piperacillin/Tazobactam 4.5g IV q8h\nMetformin continue'
+      }
+    ]
+  },
+  {
     id: 1,
     name: '박지민',
     room: '301',
@@ -27,27 +60,6 @@ export const PATIENTS_DATABASE = [
         doctor: '이영희 의사',
         time: '2026-04-11 11:30',
         order: 'Follow up EKG in 2 hours\nReport immediately if chest pain recurs or dyspnea worsens'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: '최서연',
-    room: '116',
-    status: 'stable',
-    age: 38,
-    gender: '여',
-    diagnosis: '맹장 수술 후',
-    badge: '정상',
-    summary: '회복 양호, 통증 관리 중',
-    vitals: { bp: '118/78', hr: 68, temp: 36.5 },
-    pendingTasks: 1,
-    doctorOrders: [
-      {
-        id: 1,
-        doctor: '박준형 의사',
-        time: '2026-05-26 07:30',
-        order: 'Soft diet as tolerated\nEncourage early ambulation q4h\nIbuprofen 400mg PO TID PRN for surgical site pain\nCheck surgical wound for signs of infection at evening shift'
       }
     ]
   },
@@ -76,7 +88,7 @@ export const PATIENTS_DATABASE = [
     id: 4,
     name: '정태호',
     room: '501',
-    status: 'stable', /* 💡 변경됨: 뇌졸중 회복기 안정 환자로 배정 */
+    status: 'stable',
     age: 71,
     gender: '남',
     diagnosis: '뇌졸중 (회복기)',
@@ -217,7 +229,7 @@ export function PatientList({ activeFilter, searchQuery, onPatientClick }: Patie
     }
     return true;
   }).sort((a, b) => {
-    // 위중(1) -> 관찰(2) -> 안정(3) 순서로 완벽하게 자동 정렬되도록 로직을 추가했습니다.
+    // 위중(1) -> 관찰(2) -> 안정(3) 순서 정렬
     const statusWeight = { critical: 1, monitoring: 2, stable: 3 };
     const weightA = statusWeight[a.status as keyof typeof statusWeight] || 4;
     const weightB = statusWeight[b.status as keyof typeof statusWeight] || 4;
