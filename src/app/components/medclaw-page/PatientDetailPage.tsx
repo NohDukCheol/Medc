@@ -906,15 +906,6 @@ export function PatientDetailPage({
                         </div>
                       </div>
                     </div>
-
-                    {task.guide && (
-                      <button
-                        className="mt-3 w-full px-3 py-2 text-sm font-semibold border hover:bg-gray-50 transition-colors"
-                        style={{ borderRadius: '8px', borderColor: '#E2E8F0', color: '#0052CC' }}
-                      >
-                        상세 가이드 보기
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
