@@ -531,7 +531,7 @@ export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducatio
                                 </h3>
                               </div>
 
-                              <div className="space-y-4 mb-5">
+                              <div className="space-y-4">
                                 {/* Usage */}
                                 <div>
                                   <div className="flex items-center gap-2 mb-2">
@@ -571,20 +571,6 @@ export function PatientDetailPage({ patientId, onBack, onVitalsClick, onEducatio
                                   </ul>
                                 </div>
                               </div>
-                              
-                              <button
-                                onClick={() => window.open(item.medicationGuide?.youtubeGuide, '_blank')}
-                                className="w-full py-3 px-4 flex items-center justify-center gap-2 text-white transition-all hover:opacity-90 font-medium"
-                                style={{ borderRadius: '8px', backgroundColor: '#FF0000' }}
-                              >
-                                관련 지식 교육 영상 (YouTube)
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                              </button>
-                              <p className="text-xs text-center mt-2" style={{ color: '#94A3B8' }}>
-                                상세 간호사 교육 가이드 영상
-                              </p>
                             </div>
                           </div>
                         )}
